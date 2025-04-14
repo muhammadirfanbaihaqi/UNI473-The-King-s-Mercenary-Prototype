@@ -1,6 +1,8 @@
 import sys
 import types
 import requests
+from chatbot_page import chatAI
+
 
 # Hindari streamlit mencoba "watch" torch.classes
 sys.modules['torch.classes'] = types.ModuleType('torch.classes')
@@ -64,8 +66,7 @@ if menu == "Pemantauan Suhu & Aerator":
     st.title("🌡️ Pemantauan Suhu Air & Kontrol Aerator")
     st.write("📊 Halaman ini akan menampilkan grafik suhu air dan status aerator.")
 
-    # URL Flask API kamu (ubah jika perlu)
-    flask_url = "http://localhost:5000/data"  # atau ganti dengan IP jika beda perangkat
+    flask_url = "http://192.168.42.33:5000/data"  # Ganti dengan URL Flask API kamu
 
     try:
         response = requests.get(flask_url)
@@ -73,10 +74,28 @@ if menu == "Pemantauan Suhu & Aerator":
             data = response.json()
             st.success("✅ Data berhasil diambil dari server!")
 
-            st.metric("🌡️ Suhu Air (°C)", data.get("suhu", "N/A"))
-            st.metric("🍽️ Pakan (%)", data.get("pakan", "N/A"))
-            st.metric("💨 Status Pompa", "Aktif" if data.get("pompa") else "Mati")
-            st.caption(f"⏱️ Terakhir diperbarui: {data.get('timestamp')}")
+            suhu = data.get("suhu", "N/A")
+            pakan = data.get("pakan", "N/A")
+            pompa = data.get("pompa", False)
+            timestamp = data.get("timestamp", "N/A")
+
+            st.metric("🌡️ Suhu Air (°C)", suhu)
+            st.metric("🍽️ Pakan (%)", pakan)
+            st.metric("💨 Status Pompa", "Aktif" if pompa else "Mati")
+            st.caption(f"⏱️ Terakhir diperbarui: {timestamp}")
+
+            # Tombol Epik: minta saran dari AI
+            if st.button("✨ Dapatkan Saran dari AI"):
+                with st.spinner("Sedang memproses saran dari AI..."):
+                    # Format prompt/chat history
+                    history = [
+                        {"role": "system", "content": "Kamu adalah asisten pintar untuk peternakan ikan."},
+                        {"role": "user", "content": f"Suhu air saat ini adalah {suhu}°C, dan status aerator backup adalah {'aktif' if pompa else 'mati'}. Berikan saran agar ikan koi dapat sehat berdasarkan data tersebut."}
+                    ]
+                    saran = chatAI(history)
+                    st.success("🤖 Saran dari AI:")
+                    st.markdown(f"> {saran}")
+
         else:
             st.error("❌ Gagal mengambil data dari server Flask.")
     except Exception as e:
