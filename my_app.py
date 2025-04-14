@@ -1,5 +1,6 @@
 import sys
 import types
+import requests
 
 # Hindari streamlit mencoba "watch" torch.classes
 sys.modules['torch.classes'] = types.ModuleType('torch.classes')
@@ -60,8 +61,28 @@ menu = st.sidebar.radio("📂 Pilih Halaman:", [
 
 # Konten Halaman
 if menu == "Pemantauan Suhu & Aerator":
+elif menu == "Pemantauan Suhu & Aerator":
     st.title("🌡️ Pemantauan Suhu Air & Kontrol Aerator")
     st.write("📊 Halaman ini akan menampilkan grafik suhu air dan status aerator.")
+
+    # URL Flask API kamu (ubah jika perlu)
+    flask_url = "http://localhost:5000/data"  # atau ganti dengan IP jika beda perangkat
+
+    try:
+        response = requests.get(flask_url)
+        if response.status_code == 200:
+            data = response.json()
+            st.success("✅ Data berhasil diambil dari server!")
+
+            st.metric("🌡️ Suhu Air (°C)", data.get("suhu", "N/A"))
+            st.metric("🍽️ Pakan (%)", data.get("pakan", "N/A"))
+            st.metric("💨 Status Pompa", "Aktif" if data.get("pompa") else "Mati")
+            st.caption(f"⏱️ Terakhir diperbarui: {data.get('timestamp')}")
+        else:
+            st.error("❌ Gagal mengambil data dari server Flask.")
+    except Exception as e:
+        st.error(f"⚠️ Error saat koneksi ke server: {e}")
+
 
 elif menu == "Pemberi Pakan Otomatis":
     st.title("🍽️ Pemberi Pakan Ikan Otomatis")

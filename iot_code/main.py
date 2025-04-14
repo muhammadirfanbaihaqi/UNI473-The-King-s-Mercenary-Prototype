@@ -111,7 +111,7 @@ def suhu():
 
 def kirim_data_ke_api(suhu, persen_pakan, status_pompa):
     # Mengirim data ke backend Flask API
-    url = "http://192.168.0.104:5000/sensor"  # GANTI dengan IP backend Flask kamu
+    url = "http://192.168.42.33:5000/sensor"  # GANTI dengan IP backend Flask kamu
     data = {
         "suhu": suhu,
         "pakan(%)": persen_pakan,
