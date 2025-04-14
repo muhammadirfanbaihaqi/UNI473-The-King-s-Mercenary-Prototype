@@ -61,7 +61,6 @@ menu = st.sidebar.radio("📂 Pilih Halaman:", [
 
 # Konten Halaman
 if menu == "Pemantauan Suhu & Aerator":
-elif menu == "Pemantauan Suhu & Aerator":
     st.title("🌡️ Pemantauan Suhu Air & Kontrol Aerator")
     st.write("📊 Halaman ini akan menampilkan grafik suhu air dan status aerator.")
 
