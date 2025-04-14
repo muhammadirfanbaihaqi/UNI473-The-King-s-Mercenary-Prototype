@@ -103,8 +103,42 @@ if menu == "Pemantauan Suhu & Aerator":
 
 
 elif menu == "Pemberi Pakan Otomatis":
-    st.title("🍽️ Pemberi Pakan Ikan Otomatis")
-    st.write("🐟 Atur jadwal pemberian pakan dan lihat status ketinggian pakan.")
+    st.subheader("🕒 Atur Jadwal Pemberian Pakan (Format: Jam dan Menit)")
+
+    with st.form("jadwal_form"):
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            jam1 = st.number_input("Jam #1", min_value=0, max_value=23, step=1, key="jam1")
+            menit1 = st.number_input("Menit #1", min_value=0, max_value=59, step=1, key="menit1")
+        with col2:
+            jam2 = st.number_input("Jam #2", min_value=0, max_value=23, step=1, key="jam2")
+            menit2 = st.number_input("Menit #2", min_value=0, max_value=59, step=1, key="menit2")
+        with col3:
+            jam3 = st.number_input("Jam #3", min_value=0, max_value=23, step=1, key="jam3")
+            menit3 = st.number_input("Menit #3", min_value=0, max_value=59, step=1, key="menit3")
+
+        submitted = st.form_submit_button("🚀 Kirim Jadwal ke Alat")
+
+    if submitted:
+        jadwal = []
+        if jam1 != 0 or menit1 != 0:
+            jadwal.append([int(jam1), int(menit1)])
+        if jam2 != 0 or menit2 != 0:
+            jadwal.append([int(jam2), int(menit2)])
+        if jam3 != 0 or menit3 != 0:
+            jadwal.append([int(jam3), int(menit3)])
+
+        try:
+            flask_url = "http://192.168.42.33:5000/jadwal_pakan"
+            res = requests.post(flask_url, json={"jadwal": jadwal})
+            if res.status_code == 200:
+                st.success("✅ Jadwal berhasil dikirim ke alat!")
+            else:
+                st.error("❌ Gagal mengirim jadwal ke alat.")
+        except Exception as e:
+            st.error(f"⚠️ Gagal koneksi ke Flask: {e}")
+
 
 elif menu == "Monitoring Kamera & YOLO":
     Monitoring_page()
