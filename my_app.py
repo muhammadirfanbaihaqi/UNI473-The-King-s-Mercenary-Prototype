@@ -55,27 +55,28 @@ st.markdown("""
 # Sidebar Navigasi
 st.sidebar.title("🐟 Smart Fish Dashboard")
 menu = st.sidebar.radio("📂 Pilih Halaman:", [
-    "Pemantauan Suhu & Aerator",
+    "Pemantauan Suhu, Pakan & Aerator",
     "Pemberi Pakan Otomatis",
     "Monitoring Kamera & YOLO",
     "Chatbot"
 ])
 
 # Konten Halaman
-if menu == "Pemantauan Suhu & Aerator":
-    st.title("🌡️ Pemantauan Suhu Air & Kontrol Aerator")
+if menu == "Pemantauan Suhu, Pakan & Aerator":
+    st.title("🌡️ Pemantauan Suhu Air, Pakan & Kontrol Aerator")
     st.write("📊 Halaman ini akan menampilkan grafik suhu air dan status aerator.")
 
-    flask_url = "http://192.168.42.33:5000/data"  # Ganti dengan URL Flask API kamu
+    flask_url = "http://192.168.42.33:5000/sensor"  # Ganti dengan URL Flask API kamu
 
     try:
         response = requests.get(flask_url)
         if response.status_code == 200:
             data = response.json()
+            print(data)
             st.success("✅ Data berhasil diambil dari server!")
 
             suhu = data.get("suhu", "N/A")
-            pakan = data.get("pakan", "N/A")
+            pakan = data.get("pakan(%)", "N/A")
             pompa = data.get("pompa", False)
             timestamp = data.get("timestamp", "N/A")
 
@@ -103,41 +104,57 @@ if menu == "Pemantauan Suhu & Aerator":
 
 
 elif menu == "Pemberi Pakan Otomatis":
-    st.subheader("🕒 Atur Jadwal Pemberian Pakan (Format: Jam dan Menit)")
+    st.title("📅 Atur Jadwal Pakan Ikan Hias")
 
-    with st.form("jadwal_form"):
-        col1, col2, col3 = st.columns(3)
+    API_URL = "http://192.168.42.33:5000/jadwal_pakan"  # Ganti sesuai IP Flask kamu
 
-        with col1:
-            jam1 = st.number_input("Jam #1", min_value=0, max_value=23, step=1, key="jam1")
-            menit1 = st.number_input("Menit #1", min_value=0, max_value=59, step=1, key="menit1")
-        with col2:
-            jam2 = st.number_input("Jam #2", min_value=0, max_value=23, step=1, key="jam2")
-            menit2 = st.number_input("Menit #2", min_value=0, max_value=59, step=1, key="menit2")
-        with col3:
-            jam3 = st.number_input("Jam #3", min_value=0, max_value=23, step=1, key="jam3")
-            menit3 = st.number_input("Menit #3", min_value=0, max_value=59, step=1, key="menit3")
+    # Input jam & menit
+    jam = st.number_input("Jam", min_value=0, max_value=23, step=1)
+    menit = st.number_input("Menit", min_value=0, max_value=59, step=1)
 
-        submitted = st.form_submit_button("🚀 Kirim Jadwal ke Alat")
-
-    if submitted:
-        jadwal = []
-        if jam1 != 0 or menit1 != 0:
-            jadwal.append([int(jam1), int(menit1)])
-        if jam2 != 0 or menit2 != 0:
-            jadwal.append([int(jam2), int(menit2)])
-        if jam3 != 0 or menit3 != 0:
-            jadwal.append([int(jam3), int(menit3)])
-
+    # Tombol untuk menambahkan jadwal
+    if st.button("➕ Tambah ke Jadwal"):
         try:
-            flask_url = "http://192.168.42.33:5000/jadwal_pakan"
-            res = requests.post(flask_url, json={"jadwal": jadwal})
-            if res.status_code == 200:
-                st.success("✅ Jadwal berhasil dikirim ke alat!")
+            # Ambil data jadwal terkini dari Flask
+            response = requests.get(API_URL)
+            if response.status_code == 200:
+                data = response.json()
+                jadwal = data.get("jadwal", [])
+
+                # Tambahkan hanya jika belum ada
+                if [jam, menit] not in jadwal:
+                    jadwal.append([jam, menit])
+                    res = requests.post(API_URL, json={"jadwal": jadwal})
+                    if res.status_code == 200:
+                        st.success("✅ Jadwal berhasil diperbarui!")
+                    else:
+                        st.error("❌ Gagal memperbarui jadwal.")
+                else:
+                    st.info("ℹ️ Jadwal ini sudah ada.")
             else:
-                st.error("❌ Gagal mengirim jadwal ke alat.")
+                st.error(f"❌ Gagal mengambil jadwal: {response.status_code}")
         except Exception as e:
-            st.error(f"⚠️ Gagal koneksi ke Flask: {e}")
+            st.error(f"⚠️ Gagal terhubung ke server: {e}")
+
+    # Menampilkan jadwal terkini
+    st.markdown("---")
+    st.subheader("🕒 Jadwal Saat Ini")
+
+    try:
+        response = requests.get(API_URL)
+        if response.status_code == 200:
+            data = response.json()
+            jadwal = data.get("jadwal", [])
+            if jadwal:
+                for j, m in sorted(jadwal):
+                    st.write(f"- {j:02d}:{m:02d}")
+            else:
+                st.write("Belum ada jadwal.")
+        else:
+            st.warning(f"⚠️ Gagal mengambil jadwal: {response.status_code}")
+    except Exception as e:
+        st.warning(f"⚠️ Gagal mengambil jadwal: {e}")
+
 
 
 elif menu == "Monitoring Kamera & YOLO":

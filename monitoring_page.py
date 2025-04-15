@@ -1,8 +1,15 @@
 def Monitoring_page():
     import streamlit as st
-    ESP32_STREAM_URL = "http://192.168.43.172:81/stream"
+    import requests
+    from PIL import Image
+    import numpy as np
+    import cv2
+    from io import BytesIO
+    from ultralytics import YOLO
 
-    # CSS + tampilan
+    ESP32_SNAPSHOT_URL = "http://192.168.0.102/capture"
+    ESP32_STREAM_URL = "http://192.168.0.102:81/stream"
+
     st.markdown(
         """
         <style>
@@ -32,3 +39,35 @@ def Monitoring_page():
         """,
         unsafe_allow_html=True
     )
+
+    st.markdown("---")
+
+    if st.button("📸 Ambil Gambar & Deteksi Ikan"):
+        try:
+            st.info("Mengambil gambar dari kamera...")
+            response = requests.get(ESP32_SNAPSHOT_URL, timeout=5)
+
+            if response.status_code == 200:
+                # Baca image langsung dari bytes
+                image = Image.open(BytesIO(response.content)).convert("RGB")
+
+                # Konversi ke format OpenCV (BGR)
+                img_array = np.array(image)
+                img_bgr = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+
+                # Load YOLOv8 model
+                model = YOLO("models/best (2).pt")  # Ganti sesuai path kamu
+
+                # Prediksi
+                results = model(img_bgr)
+                result_img = results[0].plot()
+                num_fish = len(results[0].boxes)
+
+                st.success(f"✅ Deteksi selesai! Jumlah ikan terdeteksi: {num_fish}")
+                st.image(result_img, caption=f"Hasil Deteksi Ikan: {num_fish} ikan", use_column_width=True)
+
+            else:
+                st.error("❌ Gagal mengambil gambar dari ESP32-CAM.")
+
+        except Exception as e:
+            st.error(f"⚠️ Terjadi error saat mengambil gambar atau memproses deteksi: {e}")
