@@ -53,7 +53,7 @@ st.markdown("""
 # ==========================================================
 
 # Sidebar Navigasi
-st.sidebar.title("🐟 Smart Fish Dashboard")
+st.sidebar.title("🐟 Smart Fish Dashboard The King's Mercenary")
 menu = st.sidebar.radio("📂 Pilih Halaman:", [
     "Pemantauan Suhu, Pakan & Aerator",
     "Pemberi Pakan Otomatis",
@@ -115,13 +115,11 @@ elif menu == "Pemberi Pakan Otomatis":
     # Tombol untuk menambahkan jadwal
     if st.button("➕ Tambah ke Jadwal"):
         try:
-            # Ambil data jadwal terkini dari Flask
             response = requests.get(API_URL)
             if response.status_code == 200:
                 data = response.json()
                 jadwal = data.get("jadwal", [])
 
-                # Tambahkan hanya jika belum ada
                 if [jam, menit] not in jadwal:
                     jadwal.append([jam, menit])
                     res = requests.post(API_URL, json={"jadwal": jadwal})
@@ -132,11 +130,11 @@ elif menu == "Pemberi Pakan Otomatis":
                 else:
                     st.info("ℹ️ Jadwal ini sudah ada.")
             else:
-                st.error(f"❌ Gagal mengambil jadwal: {response.status_code}")
+                st.error(f"{response.status_code}")
         except Exception as e:
             st.error(f"⚠️ Gagal terhubung ke server: {e}")
 
-    # Menampilkan jadwal terkini
+    # Menampilkan jadwal terkini dengan opsi hapus
     st.markdown("---")
     st.subheader("🕒 Jadwal Saat Ini")
 
@@ -146,14 +144,26 @@ elif menu == "Pemberi Pakan Otomatis":
             data = response.json()
             jadwal = data.get("jadwal", [])
             if jadwal:
-                for j, m in sorted(jadwal):
-                    st.write(f"- {j:02d}:{m:02d}")
+                for idx, (j, m) in enumerate(sorted(jadwal)):
+                    col1, col2 = st.columns([4, 1])
+                    with col1:
+                        st.write(f"- {j:02d}:{m:02d}")
+                    with col2:
+                        if st.button("❌ Hapus", key=f"hapus_{idx}"):
+                            jadwal.remove([j, m])
+                            res = requests.post(API_URL, json={"jadwal": jadwal})
+                            if res.status_code == 200:
+                                st.success(f"✅ Jadwal {j:02d}:{m:02d} berhasil dihapus!")
+                                st.rerun()
+                            else:
+                                st.error("❌ Gagal menghapus jadwal.")
             else:
                 st.write("Belum ada jadwal.")
         else:
             st.warning(f"⚠️ Gagal mengambil jadwal: {response.status_code}")
     except Exception as e:
         st.warning(f"⚠️ Gagal mengambil jadwal: {e}")
+
 
 
 
