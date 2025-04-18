@@ -9,7 +9,7 @@ import urequests
 # ======= KONFIGURASI WIFI DAN SERVER ======= #
 SSID = "abcd"
 PASSWORD = "irfanbhq"
-API_SENSOR_URL = "http://192.168.42.33:5000/sensor"       # Ganti sesuai IP Flask kamu
+API_SENSOR_URL = "http://192.168.42.33:5000/sensor"       # Ganti sesuai IP Flask
 API_JADWAL_URL = "http://192.168.42.33:5000/jadwal_pakan" # Endpoint jadwal pakan
 
 # ----KONFIGURASI UBIDOTS ------
@@ -206,4 +206,3 @@ while True:
         last_jadwal_check = current_time
 
     sleep(1)
-
