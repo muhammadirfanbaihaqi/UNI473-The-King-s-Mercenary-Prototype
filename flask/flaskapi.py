@@ -6,9 +6,23 @@
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi 
 
 app = Flask(__name__)
 CORS(app)
+
+# URI MongoDB
+uri = "mongodb://risangharyo:elKtQ36xkMJNbetA@cluster0-shard-00-00.5ckn9ic.mongodb.net:27017,cluster0-shard-00-01.5ckn9ic.mongodb.net:27017,cluster0-shard-00-02.5ckn9ic.mongodb.net:27017/?ssl=true&replicaSet=atlas-abc123-shard-0&authSource=admin&retryWrites=true&w=majority"
+
+# Membuat klien baru dan menghubungkan ke server MongoDB
+client = MongoClient(uri, server_api=ServerApi('1'))
+
+# Memilih database "iot_db" di dalam MongoDB
+db = client["iot_db"]
+
+# Memilih koleksi "SIC6_COLLECTION" untuk menyimpan data sensor
+collection = db["suhu"]
 
 # ================= DATA SEMENTARA =================
 data_terakhir = {}
@@ -24,6 +38,7 @@ def home():
 def simpan_data():
     global data_terakhir
     data = request.get_json()
+    print(data)
 
     if not data:
         return jsonify({"error": "Tidak ada data yang dikirim"}), 400

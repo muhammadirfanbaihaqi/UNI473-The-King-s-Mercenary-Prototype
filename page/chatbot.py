@@ -1,7 +1,10 @@
 import streamlit as st
-from chatbot import chatAI
+from utils.chatbot import chatAI
+
 
 def chatbot_page():
+    # ================ ISI HALAMAN ================
+
     st.title("💬 Chatbot Pakar Ikan Koi")
 
     # Inisialisasi history jika belum ada
@@ -31,4 +34,3 @@ def chatbot_page():
             ai_reply = chatAI(st.session_state.chat_history)
             st.session_state.chat_history.append({"role": "assistant", "content": ai_reply})
             st.rerun()
-

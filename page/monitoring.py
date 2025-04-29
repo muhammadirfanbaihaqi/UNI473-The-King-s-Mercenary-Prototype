@@ -1,11 +1,14 @@
-def Monitoring_page():
-    import streamlit as st
-    import requests
-    from PIL import Image
-    import numpy as np
-    import cv2
-    from io import BytesIO
-    from ultralytics import YOLO
+import streamlit as st
+import numpy as np
+import requests
+from PIL import Image
+import cv2
+from io import BytesIO
+from ultralytics import YOLO
+
+
+def monitoring_page():
+    # ================ ISI HALAMAN ================
 
     ESP32_SNAPSHOT_URL = "http://192.168.42.43/capture"
     ESP32_STREAM_URL = "http://192.168.42.43:81/stream"
